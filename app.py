@@ -5,7 +5,7 @@ import time, os
 
 import logging
 logger = logging.getLogger('websockets.server')
-logger.setLevel(logging.ERROR)
+logger.setLevel(logging.INFO)
 logger.addHandler(logging.StreamHandler())
 
 class HttpWSSProtocol(websockets.WebSocketServerProtocol):
@@ -25,7 +25,7 @@ class HttpWSSProtocol(websockets.WebSocketServerProtocol):
 
         # TODO: Check headers etc. to see if we are to upgrade to WS.
         if path == '/ws':
-            print ("WebSockest request ... ")
+            print ("WebSocket request ... ")
             # HACK: Put the read data back, to continue with normal WS handling.
             self.reader.feed_data(bytes(request_line))
             self.reader.feed_data(headers.as_bytes().replace(b'\n', b'\r\n'))
@@ -38,7 +38,6 @@ class HttpWSSProtocol(websockets.WebSocketServerProtocol):
             except Exception as e:
                 print(e)
             finally:
-
                 self.writer.close()
                 self.ws_server.unregister(self)
 
@@ -49,6 +48,7 @@ class HttpWSSProtocol(websockets.WebSocketServerProtocol):
 
             googleRequest = self.reader._buffer.decode('utf-8')
             googleRequestJson = json.loads(googleRequest)
+            print ("http_handler ... ")
             logger.info('Received from Google %s', googleRequestJson)
             
             #{"location": "living", "state": "on", "device": "lights"}
