@@ -3,6 +3,10 @@ import asyncio
 import json
 import time, os
 
+import logging
+logger = logging.getLogger('websockets.server')
+logger.setLevel(logging.ERROR)
+logger.addHandler(logging.StreamHandler())
 
 class HttpWSSProtocol(websockets.WebSocketServerProtocol):
     rwebsocket = None
