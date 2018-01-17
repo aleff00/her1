@@ -49,7 +49,8 @@ class HttpWSSProtocol(websockets.WebSocketServerProtocol):
 
             googleRequest = self.reader._buffer.decode('utf-8')
             googleRequestJson = json.loads(googleRequest)
-
+            logger.info('Received from Google %s', googleRequestJson)
+            
             #{"location": "living", "state": "on", "device": "lights"}
             if 'what' in googleRequestJson['result']['resolvedQuery']:
                 ESPparameters = googleRequestJson['result']['parameters']
@@ -58,15 +59,18 @@ class HttpWSSProtocol(websockets.WebSocketServerProtocol):
                 ESPparameters = googleRequestJson['result']['parameters']
                 ESPparameters['query'] = 'cmd'
             # send command to ESP over websocket
+            logger.info('Sending %s', json.dumps(ESPparameters))
             if self.rwebsocket== None:
                 print("Device is not connected!")
                 return
             await self.rwebsocket.send(json.dumps(ESPparameters))
 
             #wait for response and send it back to API.ai as is
+            logger.info('Wainting for reply ...')
             self.rddata = await self.rwebsocket.recv()
             #{"speech": "It is working", "displayText": "It is working"}
             print(self.rddata)
+            logger.info('Received %s', self.rddata)
             state = json.loads(self.rddata)['state']
             #self.rddata = '{"speech": "It is turned '+state+'", "displayText": "It is turned '+state+'"}'
 
@@ -78,6 +82,7 @@ class HttpWSSProtocol(websockets.WebSocketServerProtocol):
             ])
         except Exception as e:
             print(e)
+        logger.info('Sending to Google: %s', response)
         self.writer.write(response.encode())
 
 def updateData(data):
@@ -101,7 +106,7 @@ async def ws_handler(websocket, path):
 
 port = int(os.getenv('PORT', 5687))
 start_server = websockets.serve(ws_handler, '', port, klass=HttpWSSProtocol)
-# logger.info('Listening on port %d (test by aleff)', port)
+logger.info('Listening on port %d (test by aleff)', port)
 print("Starting bz aleff ...")
 
 asyncio.get_event_loop().run_until_complete(start_server)
